@@ -14,5 +14,11 @@ else:
         job_posts = job_section.find_all('li')
         job_posts.pop(-1)
         for post in job_posts:
-            print(post)
-            print("//////////")
+            anchors = post.find_all('a')
+            anchors = anchors[1]
+            link = anchors['href']
+            company, kind, region = anchors.find_all('span', class_="company")
+            title = anchors.find('span', class_='title')
+            print(company, kind, region, title)
+            print("////////////")
+            
