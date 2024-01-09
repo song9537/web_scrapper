@@ -1,24 +1,17 @@
 from extractors.wwr import extract_wwr_jobs
-from selenium import webdriver
-from bs4 import BeautifulSoup
+from extractors.indeed import extract_indeed_jobs
 
-base_url = "https://ca.indeed.com/jobs?q="
-search_term = "python"
+keyword = input("What do you want to search for?")
 
-driver = webdriver.Chrome()
-driver.get(f"{base_url}{search_term}")
 
-soup = BeautifulSoup(driver.page_source, "html.parser")
-job_list = soup.find("ul", class_="css-zu9cdh eu4oa1w0")
-jobs = job_list.find_all('li', recursive=False)
+indeed = extract_indeed_jobs(keyword)
+wwr = extract_wwr_jobs(keyword)
+jobs = indeed + wwr
+
+file = open(f"{keyword}.csv", "w")
+file.write("Position,Company,Location,URL\n")
 
 for job in jobs:
-    zone = job.find("div", class_="mosaic-zone")
-    if zone == None:
-        print("job li")
-    else:
-        print("mosaic li")
+    file.write(f"{job['position']},{job['company']},{job['location']},{job['link']}\n")
 
-
-while(True):
-    pass
+file.close()
