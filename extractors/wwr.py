@@ -10,7 +10,7 @@ def extract_wwr_jobs(keyword):
         
         results = []
         
-        soup = BeautifulSoup(response.text, "html.parser")
+        soup = BeautifulSoup(response.content, "html.parser")
         jobs = soup.find_all('section', class_="jobs")
         for job_section in jobs:
             job_posts = job_section.find_all('li')
