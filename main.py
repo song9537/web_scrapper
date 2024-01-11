@@ -1,20 +1,40 @@
-from extractors.wwr import extract_wwr_jobs
+from flask import Flask, render_template, request, redirect, send_file
 from extractors.indeed import extract_indeed_jobs
+from extractors.wwr import  extract_wwr_jobs
 from extractors.wanted import extract_wanted_jobs
+from file import save_to_file
 
-keyword = input("What do you want to search for?")
+app = Flask("JobScraper")
 
-indeed = extract_indeed_jobs(keyword)
-wwr = extract_wwr_jobs(keyword)
-wanted = extract_wanted_jobs(keyword)
+db = {}
 
-jobs = indeed + wwr + wanted
+@app.route("/")
+def home():
+    return render_template("home.html")
 
-file = open(f"{keyword}.csv", "w", encoding="utf-8")
+@app.route("/search")
+def search():
+    keyword = request.args.get("keyword")
+    if keyword == None:
+        return redirect("/")
+    if keyword in db:
+        jobs = db[keyword]
+    else:
+        indeed = extract_indeed_jobs(keyword)
+        wwr = extract_wwr_jobs(keyword)
+        wanted = extract_wanted_jobs(keyword)
+        jobs = indeed + wwr + wanted
+        db[keyword] = jobs
+    return render_template("search.html", keyword=keyword, jobs=jobs)
 
-file.write("Position,Company,Location,URL\n")
+@app.route("/export")
+def export():
+    keyword = request.args.get("keyword")
+    if keyword == None:
+        return redirect("/")
+    if keyword not in db:
+        return redirect(f"/search?keyword={keyword}")
+    save_to_file(keyword, db[keyword])
+    return send_file(f"{keyword}.csv", as_attachment=True)
 
-for job in jobs:
-    file.write(f"{job['position']},{job['company']},{job['location']},{job['link']}\n")
-
-file.close()
+app.run("0.0.0.0")
